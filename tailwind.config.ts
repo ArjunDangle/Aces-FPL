@@ -20,6 +20,7 @@ export default {
 		extend: {
 			fontFamily: {
 				sans: ['"Premier Sans"', '"Inter"', '"Poppins"', 'system-ui', 'sans-serif'],
+        brand: ['"Cinzel"', 'serif'], // Updated brand font to Cinzel
 			},
 			colors: {
 				// FPL Brand Colors

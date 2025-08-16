@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -13,6 +12,7 @@ import Dashboard from "./pages/Dashboard";
 import Team from "./pages/Team";
 import Transfers from "./pages/Transfers";
 import Gameweek from "./pages/Gameweek";
+import Leaderboard from "./pages/Leaderboard"; // Import the new page
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -48,6 +48,12 @@ const App = () => (
               <Route path="/gameweek/:gw" element={
                 <ProtectedRoute>
                   <Gameweek />
+                </ProtectedRoute>
+              } />
+              {/* Add the new Leaderboard route */}
+              <Route path="/leaderboard" element={
+                <ProtectedRoute>
+                  <Leaderboard />
                 </ProtectedRoute>
               } />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

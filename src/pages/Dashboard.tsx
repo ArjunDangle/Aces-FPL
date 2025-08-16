@@ -10,19 +10,28 @@ import {
   ArrowUpDown,
   ChevronRight,
   Trophy,
-  Settings
+  Settings,
+  Eye
 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/fpl-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/fpl-card";
 import { PillToggle } from "@/components/ui/pill-toggle";
 import { Countdown } from "@/components/ui/countdown";
 
+// Mock user status for demonstrating dynamic CTAs
+type UserStatus = "new_user" | "pre_deadline" | "post_deadline";
+
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("fantasy");
   
-  const gameweekDeadline = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000); // 2 days from now
-  
+  // This would come from your AuthContext or API
+  const [userStatus] = useState<UserStatus>("pre_deadline"); 
+
+  const gameweekDeadline = new Date("2025-08-22T23:00:00");
+
   const tabOptions = [
     { value: "fantasy", label: "Fantasy" },
     { value: "challenge", label: "Challenge" },
@@ -30,38 +39,71 @@ const Dashboard: React.FC = () => {
   ];
 
   const quickLinks = [
-    { name: "Fixtures", icon: Calendar },
-    { name: "Fixture Difficulty Rating", icon: Target },
-    { name: "Player Statistics", icon: TrendingUp },
-    { name: "Set Piece Taker", icon: Users },
+    { name: "Fixtures", icon: Calendar, path: "/fixtures" },
+    { name: "Fixture Difficulty Rating", icon: Target, path: "/fdr" },
+    { name: "Player Statistics", icon: TrendingUp, path: "/stats" },
+    { name: "Set Piece Takers", icon: Users, path: "/set-pieces" },
   ];
-
+  
   const leaderboardData = [
-    { rank: 1, manager: "John Smith", team: "Smith United", gwPoints: 85, total: 1245 },
-    { rank: 2, manager: "Sarah Wilson", team: "Wilson FC", gwPoints: 82, total: 1198 },
-    { rank: 3, manager: "Mike Johnson", team: "Johnson City", gwPoints: 78, total: 1176 },
-    { rank: 4, manager: "Emma Davis", team: "Davis Athletic", gwPoints: 76, total: 1145 },
-    { rank: 5, manager: "Tom Brown", team: "Brown Rangers", gwPoints: 74, total: 1132 },
+      { rank: 1, manager: "John Smith", team: "Smith United", gwPoints: 85, total: 1245 },
+      { rank: 2, manager: "Sarah Wilson", team: "Wilson FC", gwPoints: 82, total: 1198 },
+      { rank: 3, manager: "Mike Johnson", team: "Johnson City", gwPoints: 78, total: 1176 },
   ];
 
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
+      transition: { staggerChildren: 0.1 }
     }
   };
 
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 }
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } }
+  };
+
+  const renderCTA = () => {
+    switch (userStatus) {
+      case "new_user":
+        return (
+          <div className="mt-8">
+            <Button variant="hero" size="lg" fullWidth pill onClick={() => navigate("/team")}>
+              <Shirt className="size-5" />
+              Pick Your Team
+            </Button>
+          </div>
+        );
+      case "pre_deadline":
+        return (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
+            <Button variant="secondary" size="lg" fullWidth pill onClick={() => navigate("/team")} className="border-pl-purple/20 text-pl-purple hover:bg-pl-purple/10">
+              <Shirt className="size-5" />
+              Pick Team
+            </Button>
+            <Button variant="primary" size="lg" fullWidth pill onClick={() => navigate("/transfers")}>
+              <ArrowUpDown className="size-5" />
+              Transfers
+            </Button>
+          </div>
+        );
+      case "post_deadline":
+        return (
+          <div className="mt-8">
+            <Button variant="hero" size="lg" fullWidth pill onClick={() => navigate("/gameweek/15")}>
+              <Eye className="size-5" />
+              View Gameweek Live
+            </Button>
+          </div>
+        );
+      default:
+        return null;
+    }
   };
 
   return (
-    <div className="container mx-auto px-6 py-8 max-w-[1100px]">
-        {/* Top Navigation */}
+    <div className="container mx-auto px-4 sm:px-6 py-8 max-w-7xl">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -79,111 +121,69 @@ const Dashboard: React.FC = () => {
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="space-y-6"
+          className="space-y-8"
         >
           {/* Gameweek Hero Card */}
           <motion.div variants={itemVariants}>
             <Card variant="hero" className="relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-pl-cyan/20 to-pl-green/20" />
-              <CardContent className="relative z-10 p-8">
+              <div className="absolute inset-0 bg-gradient-to-br from-pl-cyan/10 to-pl-green/10 opacity-50" />
+              <CardContent className="relative z-10 p-6 sm:p-8">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
-                  {/* Team Info */}
                   <div className="text-center lg:text-left">
-                    <h2 className="text-h1 font-bold text-pl-purple mb-2">
-                      Aces United
+                    <h2 className="text-h1 font-bold text-pl-purple mb-1">
+                      {user?.teamName || "Aces United"}
                     </h2>
                     <p className="text-body text-pl-purple/80">
-                      Manager: John Doe
+                      {user?.name || "John Doe"}
                     </p>
                   </div>
 
-                  {/* Stats */}
-                  <div className="flex justify-center lg:justify-between gap-8">
-                    <div className="text-center">
-                      <p className="text-caption text-pl-purple/60 mb-1">Average</p>
-                      <motion.p 
-                        className="text-h2 font-bold text-pl-purple tabular-nums"
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ delay: 0.5, type: "spring", stiffness: 260, damping: 24 }}
-                      >
-                        58
-                      </motion.p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-caption text-pl-purple/60 mb-1">Your Points</p>
-                      <motion.p 
-                        className="text-display font-bold text-pl-purple tabular-nums"
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ delay: 0.7, type: "spring", stiffness: 260, damping: 24 }}
-                      >
-                        73
-                      </motion.p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-caption text-pl-purple/60 mb-1">Highest</p>
-                      <motion.p 
-                        className="text-h2 font-bold text-pl-purple tabular-nums"
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ delay: 0.9, type: "spring", stiffness: 260, damping: 24 }}
-                      >
-                        95
-                      </motion.p>
-                    </div>
-                  </div>
-
-                  {/* Deadline */}
-                  <div className="text-center lg:text-right">
-                    <div className="flex flex-col items-center lg:items-end space-y-2">
-                      <div className="flex items-center space-x-2 text-pl-purple/80">
-                        <span className="text-body font-semibold">Gameweek 15</span>
-                        <span>•</span>
-                        <span className="text-body">
-                          <span className="text-pl-pink font-semibold">Deadline:</span> Fri 22 Aug, 23:00
-                        </span>
+                  <motion.div 
+                    whileHover={{ scale: 1.05 }}
+                    onClick={() => navigate("/gameweek/15")}
+                    className="flex flex-col items-center border-y lg:border-none border-pl-purple/20 py-4 lg:py-0 cursor-pointer rounded-2xl transition-all hover:bg-white/20"
+                  >
+                    <p className="text-body font-semibold text-pl-purple/80 mb-2">Gameweek 15</p>
+                    <div className="flex justify-around items-center w-full">
+                      <div className="text-center">
+                        <p className="text-caption text-pl-purple/60 mb-1">Average</p>
+                        <p className="text-h2 font-bold text-pl-purple tabular-nums">58</p>
                       </div>
-                      <Countdown 
-                        targetDate={gameweekDeadline} 
-                        size="default"
-                        className="text-pl-purple font-bold"
-                      />
+                      <div className="text-center">
+                        <p className="text-caption text-pl-purple/60 mb-1">Your Points</p>
+                        <motion.p 
+                          className="text-display font-bold text-pl-purple tabular-nums"
+                          initial={{ scale: 0.8, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          transition={{ delay: 0.5, type: "spring", stiffness: 260, damping: 20 }}
+                        >
+                          73
+                        </motion.p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-caption text-pl-purple/60 mb-1">Highest</p>
+                        <p className="text-h2 font-bold text-pl-purple tabular-nums">95</p>
+                      </div>
                     </div>
+                  </motion.div>
+
+                  <div className="text-center lg:text-right flex flex-col items-center lg:items-end space-y-2">
+                    <div className="text-body text-pl-purple/90">
+                      <span className="font-semibold text-pl-pink">Deadline:</span> Fri 22 Aug, 23:00
+                    </div>
+                    <Countdown 
+                      targetDate={gameweekDeadline} 
+                      size="default"
+                      className="text-pl-purple font-bold"
+                    />
                   </div>
                 </div>
-
-                {/* CTA Buttons */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
-                  <Button
-                    variant="secondary"
-                    size="lg"
-                    fullWidth
-                    pill
-                    onClick={() => navigate("/team")}
-                    className="border-pl-purple/20 text-pl-purple hover:bg-pl-purple/10"
-                  >
-                    <Shirt className="size-5" />
-                    Pick Team
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    size="lg"
-                    fullWidth
-                    pill
-                    onClick={() => navigate("/transfers")}
-                    className="border-pl-purple/20 text-pl-purple hover:bg-pl-purple/10"
-                  >
-                    <ArrowUpDown className="size-5" />
-                    Transfers
-                  </Button>
-                </div>
+                {renderCTA()}
               </CardContent>
             </Card>
           </motion.div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Quick Links Card */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <motion.div variants={itemVariants}>
               <Card variant="glass" className="h-full">
                 <CardHeader>
@@ -191,14 +191,12 @@ const Dashboard: React.FC = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    {quickLinks.map((link, index) => (
+                    {quickLinks.map((link) => (
                       <motion.button
                         key={link.name}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.8 + index * 0.1 }}
-                        className="w-full flex items-center justify-between p-3 rounded-xl glass hover:bg-pl-white/10 transition-all duration-200 group"
-                        onClick={() => navigate(`/${link.name.toLowerCase().replace(/\s+/g, '-')}`)}
+                        whileHover={{ x: 2 }}
+                        className="w-full flex items-center justify-between p-3 rounded-xl glass hover:bg-pl-white/10 transition-colors duration-200 group"
+                        onClick={() => navigate(link.path)}
                       >
                         <div className="flex items-center space-x-3">
                           <link.icon className="size-5 text-pl-cyan" />
@@ -212,59 +210,35 @@ const Dashboard: React.FC = () => {
               </Card>
             </motion.div>
 
-            {/* Leagues & Cups Card */}
             <motion.div variants={itemVariants}>
               <Card variant="glass" className="h-full">
                 <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-pl-white">Leagues & Cups</CardTitle>
-                    <Settings className="size-5 text-pl-white/60" />
-                  </div>
-                  <div className="flex space-x-1 mt-4">
-                    <Button variant="ghost" size="sm" className="text-pl-cyan border-b-2 border-pl-cyan rounded-none">
-                      Leagues
-                    </Button>
-                    <Button variant="ghost" size="sm" className="text-pl-white/60">
-                      Cups
-                    </Button>
-                  </div>
+                  <CardTitle className="text-pl-white">Global League</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {/* Global League Preview */}
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <h4 className="text-h3 text-pl-white font-semibold">Global League</h4>
-                        <Trophy className="size-5 text-pl-green" />
-                      </div>
-                      
-                      <div className="space-y-2">
-                        {leaderboardData.slice(0, 3).map((entry, index) => (
-                          <motion.div
-                            key={entry.rank}
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 1.2 + index * 0.1 }}
-                            className="flex items-center justify-between p-2 rounded-lg glass text-caption"
-                          >
-                            <div className="flex items-center space-x-3">
-                              <span className="size-6 bg-pl-green/20 text-pl-green rounded-full flex items-center justify-center text-mini font-bold">
-                                {entry.rank}
-                              </span>
-                              <div>
-                                <p className="text-pl-white font-medium">{entry.team}</p>
-                                <p className="text-pl-white/60">{entry.manager}</p>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-pl-white font-semibold tabular-nums">{entry.total}</p>
-                              <p className="text-pl-green tabular-nums">+{entry.gwPoints}</p>
-                            </div>
-                          </motion.div>
-                        ))}
-                      </div>
-
-                      <Button
+                  <div className="space-y-3">
+                    {leaderboardData.map((entry) => (
+                      <motion.div
+                        key={entry.rank}
+                        whileHover={{ scale: 1.02 }}
+                        className="flex items-center justify-between p-2 rounded-lg glass text-caption"
+                      >
+                        <div className="flex items-center space-x-3">
+                          <span className="size-6 bg-pl-green/20 text-pl-green rounded-full flex items-center justify-center text-mini font-bold">
+                            {entry.rank}
+                          </span>
+                          <div>
+                            <p className="text-pl-white font-medium">{entry.team}</p>
+                            <p className="text-pl-white/60">{entry.manager}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-pl-white font-semibold tabular-nums">{entry.total}</p>
+                          <p className="text-pl-green tabular-nums">+{entry.gwPoints}</p>
+                        </div>
+                      </motion.div>
+                    ))}
+                     <Button
                         variant="secondary"
                         size="sm"
                         fullWidth
@@ -272,7 +246,6 @@ const Dashboard: React.FC = () => {
                       >
                         View Full Leaderboard
                       </Button>
-                    </div>
                   </div>
                 </CardContent>
               </Card>
