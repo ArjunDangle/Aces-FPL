@@ -83,7 +83,7 @@ const Login: React.FC = () => {
     } else {
       // Simulate successful login
       setLoading(false);
-      navigate("/");
+      navigate("/dashboard");
     }
   };
 
