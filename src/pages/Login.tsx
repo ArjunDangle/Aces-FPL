@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/fpl-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/fpl-card";
 import { PillToggle } from "@/components/ui/pill-toggle";
@@ -9,11 +10,11 @@ import heroPattern from "@/assets/hero-pattern.png";
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
+  const { login, signup, isAuthenticated, pendingApproval } = useAuth();
   const [authMode, setAuthMode] = useState<"login" | "signup">("login");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [pendingApproval, setPendingApproval] = useState(false);
   
   const [formData, setFormData] = useState({
     name: "",
@@ -23,6 +24,13 @@ const Login: React.FC = () => {
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/dashboard");
+    }
+  }, [isAuthenticated, navigate]);
 
   const authOptions = [
     { value: "login", label: "Login" },
@@ -68,22 +76,29 @@ const Login: React.FC = () => {
     e.preventDefault();
     
     if (!validateForm()) {
-      // Shake animation on error
       return;
     }
 
     setLoading(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    if (authMode === "signup") {
-      setPendingApproval(true);
+    try {
+      if (authMode === "signup") {
+        const success = await signup(formData.name, formData.email, formData.password);
+        if (!success) {
+          setErrors({ general: "Signup failed. Please try again." });
+        }
+      } else {
+        const success = await login(formData.email, formData.password);
+        if (success) {
+          navigate("/dashboard");
+        } else {
+          setErrors({ general: "Invalid email or password" });
+        }
+      }
+    } catch (error) {
+      setErrors({ general: "Something went wrong. Please try again." });
+    } finally {
       setLoading(false);
-    } else {
-      // Simulate successful login
-      setLoading(false);
-      navigate("/dashboard");
     }
   };
 
@@ -114,10 +129,7 @@ const Login: React.FC = () => {
               <Button 
                 variant="secondary" 
                 fullWidth 
-                onClick={() => {
-                  setPendingApproval(false);
-                  setAuthMode("login");
-                }}
+                onClick={() => navigate("/login")}
               >
                 Back to Login
               </Button>

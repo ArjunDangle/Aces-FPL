@@ -60,8 +60,7 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-pl-purple">
-      <div className="container mx-auto px-6 py-8 max-w-[1100px]">
+    <div className="container mx-auto px-6 py-8 max-w-[1100px]">
         {/* Top Navigation */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -281,7 +280,6 @@ const Dashboard: React.FC = () => {
           </div>
         </motion.div>
       </div>
-    </div>
   );
 };
 
