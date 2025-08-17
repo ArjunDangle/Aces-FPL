@@ -20,7 +20,7 @@ export default {
 		extend: {
 			fontFamily: {
 				sans: ['"Premier Sans"', '"Inter"', '"Poppins"', 'system-ui', 'sans-serif'],
-        brand: ['"Cinzel"', 'serif'], // Updated brand font to Cinzel
+        		brand: ['"Cinzel"', 'serif'],
 			},
 			colors: {
 				// FPL Brand Colors
@@ -43,6 +43,15 @@ export default {
 				'fdr-easy': 'hsl(var(--fdr-easy))',
 				'fdr-medium': 'hsl(var(--fdr-medium))',
 				'fdr-hard': 'hsl(var(--fdr-hard))',
+
+        // Custom Colors
+        'fpl-card-purple-start': '#23003F',
+        'fpl-card-purple-end': '#300050',
+        'fpl-page-purple-start': '#0A001F',
+        'fpl-page-purple-end': '#1B0033',
+        'fpl-highlight-teal': '#00DFA2',
+        'fpl-highlight-green': '#00FFC6',
+        'fpl-text-gray': '#AAAAAA',
 				
 				// Semantic tokens
 				border: 'hsl(var(--border))',
@@ -96,6 +105,10 @@ export default {
 				'gradient-hero': 'var(--gradient-hero)',
 				'gradient-pitch': 'var(--gradient-pitch)',
 				'gradient-card': 'var(--gradient-card)',
+        'gradient-stats-blue': 'linear-gradient(135deg, #00CFFF, #00FF87)',
+        'gradient-page-purple': 'linear-gradient(180deg, #0A001F, #1B0033)',
+        'gradient-card-purple': 'linear-gradient(180deg, #23003F, #300050)',
+        'gradient-highlight-teal': 'linear-gradient(135deg, #00DFA2, #00FFC6)',
 			},
 			keyframes: {
 				'accordion-down': {
