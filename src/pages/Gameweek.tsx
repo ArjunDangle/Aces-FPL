@@ -38,7 +38,6 @@ const mockLeagueStandings = [
     { rank: 3, teamName: 'KDBs Crew', manager: 'Kevin De Bruyne', points: 1230 },
 ];
 
-
 // --- MAIN GAMEWEEK COMPONENT ---
 const Gameweek: React.FC = () => {
   const { gw } = useParams();
@@ -50,6 +49,67 @@ const Gameweek: React.FC = () => {
     MID: mockUserSquad.starting.filter(p => p.pos === 'MID'),
     FWD: mockUserSquad.starting.filter(p => p.pos === 'FWD'),
   };
+  
+  const allPlayers = [...mockUserSquad.starting, ...mockUserSquad.bench];
+
+  const PitchView = () => (
+    <>
+      <main 
+        className="flex-1 relative flex flex-col justify-around py-4 bg-center bg-no-repeat bg-cover lg:bg-contain"
+        style={{ 
+          backgroundImage: `url(${pitchBackground})`,
+        }}
+      >
+        <div className="flex justify-center items-center gap-x-8 sm:gap-x-12">
+          {playersByPos.FWD.map(p => <PlayerCard key={p.id} player={p} />)}
+        </div>
+        <div className="flex justify-center items-center gap-x-8 sm:gap-x-12">
+          {playersByPos.MID.map(p => <PlayerCard key={p.id} player={p} />)}
+        </div>
+        <div className="flex justify-center items-center gap-x-8 sm:gap-x-12">
+          {playersByPos.DEF.map(p => <PlayerCard key={p.id} player={p} />)}
+        </div>
+        <div className="flex justify-center items-center">
+          {playersByPos.GK.map(p => <PlayerCard key={p.id} player={p} />)}
+        </div>
+      </main>
+      <footer className="flex-shrink-0 p-3 bg-[#23003F] border-t-2 border-gray-700">
+        <div className="grid grid-cols-3 gap-4 place-items-center">
+          {mockUserSquad.bench.map(player => (
+            <PlayerCard key={player.id} player={player} isBench={true} />
+          ))}
+        </div>
+      </footer>
+    </>
+  );
+
+  const ListView = () => (
+    <div className="flex-1 p-4 min-h-0">
+        <div className="bg-white rounded-lg shadow-md h-full overflow-y-auto">
+            <table className="w-full text-left">
+                <thead className="sticky top-0 bg-gray-100">
+                    <tr>
+                        <th className="p-3 text-xs font-bold text-gray-600 uppercase">Player</th>
+                        <th className="p-3 text-xs font-bold text-gray-600 uppercase text-right">Points</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {allPlayers.map((player, index) => (
+                        <tr key={player.id} className={cn("border-b border-gray-200", index % 2 === 1 && "bg-gray-50")}>
+                            <td className="p-3">
+                                <p className="font-bold text-sm text-black">{player.name}</p>
+                                <p className="text-xs text-gray-500">{player.team} · {player.fixture}</p>
+                            </td>
+                            <td className="p-3 text-right font-bold text-lg text-black">
+                                {player.points}
+                            </td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
+    </div>
+  );
 
   return (
     <div className="w-full min-h-screen bg-gradient-page-purple flex flex-col lg:h-screen lg:flex-row font-sans lg:overflow-hidden">
@@ -100,10 +160,10 @@ const Gameweek: React.FC = () => {
             <h2 className="text-white font-bold text-lg mb-3">Fixtures</h2>
             <div className="space-y-2">
                 {mockFixtures.map((fixture, index) => (
-                    <div key={index} className="flex justify-between items-center bg-black/20 p-2 rounded-md text-white">
-                        <span className="font-semibold text-sm">{fixture.homeTeam}</span>
-                        <span className="font-bold text-lg bg-white/10 px-3 py-1 rounded-md">{fixture.homeScore} - {fixture.awayScore}</span>
-                        <span className="font-semibold text-sm">{fixture.awayTeam}</span>
+                    <div key={index} className="grid grid-cols-3 items-center bg-black/20 p-2 rounded-md text-white">
+                        <span className="font-semibold text-sm text-right">{fixture.homeTeam}</span>
+                        <span className="font-bold text-lg bg-white/10 px-3 py-1 rounded-md text-center mx-auto">{fixture.homeScore} - {fixture.awayScore}</span>
+                        <span className="font-semibold text-sm text-left">{fixture.awayTeam}</span>
                     </div>
                 ))}
             </div>
@@ -136,32 +196,7 @@ const Gameweek: React.FC = () => {
 
       {/* Pitch & Bench Container (Right Column on Desktop - 70%) */}
       <div className="flex-1 lg:w-2/3 flex flex-col min-h-0">
-        <main 
-          className="flex-1 relative flex flex-col justify-around py-4 bg-center bg-no-repeat bg-cover lg:bg-contain"
-          style={{ 
-            backgroundImage: `url(${pitchBackground})`,
-          }}
-        >
-          <div className="flex justify-center items-center gap-x-8 sm:gap-x-12">
-            {playersByPos.FWD.map(p => <PlayerCard key={p.id} player={p} />)}
-          </div>
-          <div className="flex justify-center items-center gap-x-8 sm:gap-x-12">
-            {playersByPos.MID.map(p => <PlayerCard key={p.id} player={p} />)}
-          </div>
-          <div className="flex justify-center items-center gap-x-8 sm:gap-x-12">
-            {playersByPos.DEF.map(p => <PlayerCard key={p.id} player={p} />)}
-          </div>
-          <div className="flex justify-center items-center">
-            {playersByPos.GK.map(p => <PlayerCard key={p.id} player={p} />)}
-          </div>
-        </main>
-        <footer className="flex-shrink-0 p-3 bg-[#23003F] border-t-2 border-gray-700">
-          <div className="grid grid-cols-3 gap-4 place-items-center">
-            {mockUserSquad.bench.map(player => (
-              <PlayerCard key={player.id} player={player} isBench={true} />
-            ))}
-          </div>
-        </footer>
+        {view === 'pitch' ? <PitchView /> : <ListView />}
       </div>
     </div>
   );
