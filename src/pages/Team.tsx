@@ -1,241 +1,131 @@
-import React, { useState } from "react";
-import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Plus, Users, Shield, Target, Zap } from "lucide-react";
-import { Button } from "@/components/ui/fpl-button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/fpl-card";
-import { PillToggle } from "@/components/ui/pill-toggle";
-import { Countdown } from "@/components/ui/countdown";
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { useParams, Link } from 'react-router-dom';
+import { cn } from '@/lib/utils';
+import PlayerCard from '@/components/layout/PlayerCard'; 
+import { Button } from '@/components/ui/fpl-button';
+import { Zap, Users, Shield, RefreshCw } from 'lucide-react';
 
+
+// --- ASSET IMPORTS ---
+import pitchBackground from '@/assets/images/pitch.svg';
+
+// --- MOCK DATA & CONFIGURATION ---
+const initialSquad = {
+  starting: [
+    { id: 1, name: 'Raya', team: 'Satan', pos: 'GK', fixture: 'MUN(A)', points: 6, isCaptain: false, isVice: false },
+    { id: 2, name: 'Saliba', team: 'Satan', pos: 'DEF', fixture: 'MUN(A)', points: 7, isCaptain: false, isVice: false },
+    { id: 3, name: 'Shaw', team: 'Bandra United', pos: 'DEF', fixture: 'SAT(H)', points: 5, isCaptain: false, isVice: false },
+    { id: 4, name: 'Trippier', team: 'Southside', pos: 'DEF', fixture: 'TIT(H)', points: 8, isCaptain: false, isVice: false },
+    { id: 5, name: 'Fernandes', team: 'Bandra United', pos: 'MID', fixture: 'SAT(H)', points: 12, isCaptain: true, isVice: false },
+    { id: 6, name: 'Son', team: 'Mumbai Hotspurs', pos: 'MID', fixture: 'UMA(A)', points: 9, isCaptain: false, isVice: true },
+    { id: 7, name: 'Joelinton', team: 'Southside', pos: 'MID', fixture: 'TIT(H)', points: 4, isCaptain: false, isVice: false },
+    { id: 8, name: 'Haaland', team: 'Titans', pos: 'FWD', fixture: 'SOU(A)', points: 13, isCaptain: false, isVice: false },
+  ],
+  bench: [
+    { id: 9, name: 'Pope', team: 'Umaag Foundation Trust', pos: 'GK', fixture: 'MHS(H)', points: 1 },
+    { id: 10, name: 'Maddison', team: 'Mumbai Hotspurs', pos: 'MID', fixture: 'UMA(A)', points: 5 },
+    { id: 11, name: 'Watkins', team: 'Titans', pos: 'FWD', fixture: 'SOU(A)', points: 2 },
+  ]
+};
+
+// --- MAIN TEAM COMPONENT ---
 const Team: React.FC = () => {
-  const navigate = useNavigate();
-  const [viewMode, setViewMode] = useState<"pitch" | "list">("pitch");
-  
-  const gameweekDeadline = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000);
-  
-  const viewOptions = [
-    { value: "pitch", label: "Pitch" },
-    { value: "list", label: "List" },
-  ];
+  const { gw } = useParams();
+  const [squad, setSquad] = useState(initialSquad);
+  const [selectedPlayer, setSelectedPlayer] = useState<any>(null);
 
-  // Mock squad data
-  const squad = {
-    goalkeepers: [
-      { id: 1, name: "Jordan Pickford", club: "EVE", price: 5.0, fixture: "LEE(H)" }
-    ],
-    defenders: [
-      { id: 2, name: "Trent Alexander-Arnold", club: "LIV", price: 7.5, fixture: "MUN(A)" },
-      { id: 3, name: "Virgil van Dijk", club: "LIV", price: 6.5, fixture: "MUN(A)" },
-    ],
-    midfielders: [
-      { id: 4, name: "Mohamed Salah", club: "LIV", price: 13.0, fixture: "MUN(A)" },
-      { id: 5, name: "Kevin De Bruyne", club: "MCI", price: 12.5, fixture: "ARS(H)" },
-    ],
-    forwards: [
-      { id: 6, name: "Erling Haaland", club: "MCI", price: 15.0, fixture: "ARS(H)" },
-    ]
+  const handlePlayerClick = (player, isBenchPlayer) => {
+    if (!selectedPlayer) {
+      // Nothing selected, so select this player
+      setSelectedPlayer({ ...player, isBench: isBenchPlayer });
+    } else {
+      // A player is already selected, attempt a swap
+      if (selectedPlayer.isBench === isBenchPlayer) {
+        // Clicked another player in the same area (pitch/bench), so just switch selection
+        setSelectedPlayer({ ...player, isBench: isBenchPlayer });
+      } else {
+        // Perform the swap
+        const newStarting = [...squad.starting];
+        const newBench = [...squad.bench];
+
+        if (selectedPlayer.isBench) {
+          // Swapping from bench to pitch
+          const benchIndex = newBench.findIndex(p => p.id === selectedPlayer.id);
+          const startingIndex = newStarting.findIndex(p => p.id === player.id);
+          
+          newBench[benchIndex] = player;
+          newStarting[startingIndex] = selectedPlayer;
+        } else {
+          // Swapping from pitch to bench
+          const startingIndex = newStarting.findIndex(p => p.id === selectedPlayer.id);
+          const benchIndex = newBench.findIndex(p => p.id === player.id);
+
+          newStarting[startingIndex] = player;
+          newBench[benchIndex] = selectedPlayer;
+        }
+
+        setSquad({ starting: newStarting, bench: newBench });
+        setSelectedPlayer(null); // Reset selection
+      }
+    }
   };
 
-  const totalSpent = 59.5;
-  const budget = 110.0;
-  const remaining = budget - totalSpent;
-
-  const PlayerCard = ({ player }: { player: any }) => (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      whileHover={{ scale: 1.05, y: -4 }}
-      className="relative bg-gradient-to-b from-pl-white to-pl-white/90 rounded-2xl p-4 text-center shadow-card hover:shadow-glow-cyan transition-all duration-200"
-    >
-      {/* Price ribbon */}
-      <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-pl-green text-pl-purple text-mini font-bold px-3 py-1 rounded-full">
-        £{player.price}m
-      </div>
-      
-      {/* Jersey placeholder */}
-      <div className="size-16 bg-gradient-to-br from-pl-cyan/20 to-pl-green/20 rounded-full mx-auto mb-3 flex items-center justify-center">
-        <Users className="size-8 text-pl-purple" />
-      </div>
-      
-      {/* Player info */}
-      <h4 className="text-caption font-semibold text-pl-purple mb-1">{player.name}</h4>
-      <div className="flex items-center justify-center space-x-2">
-        <span className="text-mini text-pl-purple/60">{player.club}</span>
-        <span className="bg-pl-green/20 text-pl-purple text-mini px-2 py-0.5 rounded-full">
-          {player.fixture}
-        </span>
-      </div>
-    </motion.div>
-  );
-
-  const EmptySlot = ({ position }: { position: string }) => (
-    <motion.button
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      whileHover={{ scale: 1.05 }}
-      className="relative bg-pl-white/10 border-2 border-dashed border-pl-white/30 rounded-2xl p-4 text-center hover:border-pl-cyan transition-all duration-200"
-      onClick={() => console.log(`Add ${position}`)}
-    >
-      <div className="size-16 bg-pl-white/5 rounded-full mx-auto mb-3 flex items-center justify-center">
-        <Plus className="size-6 text-pl-white/60" />
-      </div>
-      <p className="text-caption text-pl-white/60">{position}</p>
-    </motion.button>
-  );
+  const playersByPos = {
+    GK: squad.starting.filter(p => p.pos === 'GK'),
+    DEF: squad.starting.filter(p => p.pos === 'DEF'),
+    MID: squad.starting.filter(p => p.pos === 'MID'),
+    FWD: squad.starting.filter(p => p.pos === 'FWD'),
+  };
 
   return (
-    <div className="min-h-screen bg-pl-purple">
-      {/* Header */}
-      <div className="border-b border-pl-border">
-        <div className="container mx-auto px-6 py-4 max-w-[1100px]">
-          <div className="flex items-center justify-between">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate("/dashboard")}
-              className="text-pl-white/80"
-            >
-              <ArrowLeft className="size-4" />
-              Back
-            </Button>
-            
-            <div className="text-center">
-              <h1 className="text-h2 font-bold text-pl-white mb-1">Pick Team</h1>
-              <div className="flex items-center space-x-4 text-caption text-pl-white/80">
-                <span>Gameweek 15</span>
-                <span>•</span>
-                <span className="text-pl-pink">Deadline: Fri 22 Aug, 23:00</span>
-                <span>•</span>
-                <span className="text-pl-green">£{remaining.toFixed(1)}m left</span>
-              </div>
+    <div className="w-full min-h-screen bg-gradient-page-purple flex flex-col font-sans lg:h-screen lg:flex-row lg:overflow-hidden">
+      {/* Left Column on Desktop */}
+      <div className="flex-shrink-0 p-4 lg:w-1/3 lg:h-full lg:overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <div className="bg-gradient-card-purple rounded-xl p-4 shadow-lg">
+            <h1 className="text-white font-bold text-2xl mb-4">Pick Team</h1>
+            <div className="space-y-3">
+                <Button variant="secondary" size="lg" fullWidth>
+                    <RefreshCw className="size-5 mr-2" />
+                    Wildcard
+                </Button>
+                <Button variant="secondary" size="lg" fullWidth>
+                    <Users className="size-5 mr-2" />
+                    Bench Boost
+                </Button>
+                <Button variant="secondary" size="lg" fullWidth>
+                    <Shield className="size-5 mr-2" />
+                    Triple Captain
+                </Button>
             </div>
-
-            <PillToggle
-              options={viewOptions}
-              value={viewMode}
-              onValueChange={(value) => setViewMode(value as "pitch" | "list")}
-              size="sm"
-            />
-          </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-6 py-8 max-w-[1100px]">
-        {viewMode === "pitch" ? (
-          /* Pitch View */
-          <div className="relative">
-            {/* Pitch background */}
-            <div className="relative bg-gradient-to-b from-pitch-top to-pitch-bottom rounded-3xl p-8 min-h-[600px] overflow-hidden">
-              {/* Pitch lines overlay */}
-              <div className="absolute inset-0 opacity-20">
-                <svg viewBox="0 0 100 100" className="w-full h-full">
-                  <rect x="0" y="0" width="100" height="100" fill="none" stroke="currentColor" strokeWidth="0.5" className="text-pitch-line" />
-                  <circle cx="50" cy="50" r="15" fill="none" stroke="currentColor" strokeWidth="0.5" className="text-pitch-line" />
-                  <line x1="0" y1="50" x2="100" y2="50" stroke="currentColor" strokeWidth="0.5" className="text-pitch-line" />
-                </svg>
-              </div>
-
-              {/* Formation */}
-              <div className="relative z-10 h-full flex flex-col justify-between">
-                {/* Forwards */}
-                <div className="flex justify-center space-x-4 mb-8">
-                  {squad.forwards.map((player) => (
-                    <PlayerCard key={player.id} player={player} />
-                  ))}
-                  <EmptySlot position="FWD" />
-                  <EmptySlot position="FWD" />
+      {/* Pitch & Bench Container (Right Column on Desktop) */}
+      <div className="flex-1 lg:w-2/3 flex flex-col min-h-0">
+        <main 
+          className="flex-1 relative flex flex-col justify-around py-4 bg-center bg-no-repeat bg-cover lg:bg-contain"
+          style={{ backgroundImage: `url(${pitchBackground})` }}
+        >
+          {Object.keys(playersByPos).map(pos => (
+            <div key={pos} className="flex justify-center items-center gap-x-8 sm:gap-x-12">
+              {playersByPos[pos].map(p => (
+                <div key={p.id} onClick={() => handlePlayerClick(p, false)} className={cn("cursor-pointer rounded-md transition-all", selectedPlayer?.id === p.id && "ring-2 ring-fpl-highlight-teal ring-offset-2 ring-offset-transparent")}>
+                  <PlayerCard player={p} />
                 </div>
-
-                {/* Midfielders */}
-                <div className="flex justify-center space-x-4 mb-8">
-                  {squad.midfielders.map((player) => (
-                    <PlayerCard key={player.id} player={player} />
-                  ))}
-                  <EmptySlot position="MID" />
-                  <EmptySlot position="MID" />
-                  <EmptySlot position="MID" />
-                </div>
-
-                {/* Defenders */}
-                <div className="flex justify-center space-x-4 mb-8">
-                  {squad.defenders.map((player) => (
-                    <PlayerCard key={player.id} player={player} />
-                  ))}
-                  <EmptySlot position="DEF" />
-                  <EmptySlot position="DEF" />
-                  <EmptySlot position="DEF" />
-                </div>
-
-                {/* Goalkeeper */}
-                <div className="flex justify-center">
-                  {squad.goalkeepers.map((player) => (
-                    <PlayerCard key={player.id} player={player} />
-                  ))}
-                </div>
-              </div>
+              ))}
             </div>
-          </div>
-        ) : (
-          /* List View */
-          <Card variant="glass">
-            <CardHeader>
-              <CardTitle className="text-pl-white">Squad List</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {/* Table header */}
-                <div className="grid grid-cols-5 gap-4 text-caption text-pl-white/60 font-semibold border-b border-pl-border pb-2">
-                  <span>Player</span>
-                  <span>Position</span>
-                  <span>Club</span>
-                  <span>Fixture</span>
-                  <span>Price</span>
-                </div>
-
-                {/* Players */}
-                {[...squad.goalkeepers, ...squad.defenders, ...squad.midfielders, ...squad.forwards].map((player) => (
-                  <motion.div
-                    key={player.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="grid grid-cols-5 gap-4 text-body text-pl-white items-center p-3 rounded-xl glass hover:bg-pl-white/10 transition-all"
-                  >
-                    <span className="font-medium">{player.name}</span>
-                    <span className="text-pl-white/80">MID</span>
-                    <span className="text-pl-white/80">{player.club}</span>
-                    <span className="bg-pl-green/20 text-pl-purple text-caption px-2 py-1 rounded-full w-fit">
-                      {player.fixture}
-                    </span>
-                    <span className="font-semibold tabular-nums">£{player.price}m</span>
-                  </motion.div>
-                ))}
+          ))}
+        </main>
+        <footer className="flex-shrink-0 p-3 bg-[#23003F] border-t-2 border-gray-700">
+          <div className="grid grid-cols-3 gap-4 place-items-center">
+            {squad.bench.map(player => (
+              <div key={player.id} onClick={() => handlePlayerClick(player, true)} className={cn("cursor-pointer rounded-md transition-all", selectedPlayer?.id === player.id && "ring-2 ring-fpl-highlight-teal ring-offset-2 ring-offset-transparent")}>
+                <PlayerCard player={player} isBench={true} />
               </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Footer */}
-        <div className="mt-8 flex flex-col sm:flex-row gap-4">
-          <Button
-            variant="secondary"
-            size="lg"
-            fullWidth
-            pill
-            onClick={() => console.log("Add Player")}
-          >
-            <Plus className="size-5" />
-            Add Player
-          </Button>
-          <Button
-            variant="hero"
-            size="lg"
-            fullWidth
-            pill
-            onClick={() => navigate("/gameweek/15")}
-          >
-            Continue to Gameweek
-          </Button>
-        </div>
+            ))}
+          </div>
+        </footer>
       </div>
     </div>
   );

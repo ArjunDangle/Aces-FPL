@@ -16,7 +16,6 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/fpl-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/fpl-card";
-import { PillToggle } from "@/components/ui/pill-toggle";
 import { Countdown } from "@/components/ui/countdown";
 
 // Mock user status for demonstrating dynamic CTAs
@@ -25,18 +24,11 @@ type UserStatus = "new_user" | "pre_deadline" | "post_deadline";
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState("fantasy");
   
   // This would come from your AuthContext or API
   const [userStatus] = useState<UserStatus>("pre_deadline"); 
 
   const gameweekDeadline = new Date("2025-08-22T23:00:00");
-
-  const tabOptions = [
-    { value: "fantasy", label: "Fantasy" },
-    { value: "challenge", label: "Challenge" },
-    { value: "draft", label: "Draft" },
-  ];
 
   const quickLinks = [
     { name: "Fixtures", icon: Calendar, path: "/fixtures" },
@@ -105,19 +97,6 @@ const Dashboard: React.FC = () => {
   return (
     <div className="container mx-auto px-4 sm:px-6 py-8 max-w-7xl">
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex justify-center mb-8"
-        >
-          <PillToggle
-            options={tabOptions}
-            value={activeTab}
-            onValueChange={setActiveTab}
-            size="lg"
-          />
-        </motion.div>
-
-        <motion.div
           variants={containerVariants}
           initial="hidden"
           animate="visible"
@@ -130,10 +109,10 @@ const Dashboard: React.FC = () => {
               <CardContent className="relative z-10 p-6 sm:p-8">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
                   <div className="text-center lg:text-left">
-                    <h2 className="text-h1 font-bold text-pl-purple mb-1">
+                    <h2 className="text-h1 font-extrabold text-pl-purple mb-1">
                       {user?.teamName || "Aces United"}
                     </h2>
-                    <p className="text-body text-pl-purple/80">
+                    <p className="text-body font-semibold text-pl-purple/80">
                       {user?.name || "John Doe"}
                     </p>
                   </div>
@@ -143,16 +122,16 @@ const Dashboard: React.FC = () => {
                     onClick={() => navigate("/gameweek/15")}
                     className="flex flex-col items-center border-y lg:border-none border-pl-purple/20 py-4 lg:py-0 cursor-pointer rounded-2xl transition-all hover:bg-white/20"
                   >
-                    <p className="text-body font-semibold text-pl-purple/80 mb-2">Gameweek 15</p>
+                    <p className="text-xl font-extrabold text-pl-purple/80 mb-2">Gameweek 15</p>
                     <div className="flex justify-around items-center w-full">
                       <div className="text-center">
-                        <p className="text-caption text-pl-purple/60 mb-1">Average</p>
-                        <p className="text-h2 font-bold text-pl-purple tabular-nums">58</p>
+                        <p className="text-caption font-semibold text-pl-purple/60 mb-1">Average</p>
+                        <p className="text-h1 font-extrabold text-pl-purple tabular-nums">58</p>
                       </div>
                       <div className="text-center">
-                        <p className="text-caption text-pl-purple/60 mb-1">Your Points</p>
+                        <p className="text-caption font-semibold text-pl-purple/60 mb-1">Your Points</p>
                         <motion.p 
-                          className="text-display font-bold text-pl-purple tabular-nums"
+                          className="text-6xl font-extrabold text-pl-purple tabular-nums"
                           initial={{ scale: 0.8, opacity: 0 }}
                           animate={{ scale: 1, opacity: 1 }}
                           transition={{ delay: 0.5, type: "spring", stiffness: 260, damping: 20 }}
@@ -161,20 +140,20 @@ const Dashboard: React.FC = () => {
                         </motion.p>
                       </div>
                       <div className="text-center">
-                        <p className="text-caption text-pl-purple/60 mb-1">Highest</p>
-                        <p className="text-h2 font-bold text-pl-purple tabular-nums">95</p>
+                        <p className="text-caption font-semibold text-pl-purple/60 mb-1">Highest</p>
+                        <p className="text-h1 font-extrabold text-pl-purple tabular-nums">95</p>
                       </div>
                     </div>
                   </motion.div>
 
                   <div className="text-center lg:text-right flex flex-col items-center lg:items-end space-y-2">
-                    <div className="text-body text-pl-purple/90">
-                      <span className="font-semibold text-pl-pink">Deadline:</span> Fri 22 Aug, 23:00
+                    <div className="text-body font-bold text-pl-purple/90">
+                      <span className="font-extrabold text-pl-pink">Deadline:</span> Fri 22 Aug, 23:00
                     </div>
                     <Countdown 
                       targetDate={gameweekDeadline} 
                       size="default"
-                      className="text-pl-purple font-bold"
+                      className="text-pl-purple font-extrabold"
                     />
                   </div>
                 </div>
@@ -187,7 +166,7 @@ const Dashboard: React.FC = () => {
             <motion.div variants={itemVariants}>
               <Card variant="glass" className="h-full">
                 <CardHeader>
-                  <CardTitle className="text-pl-white">Quick Links</CardTitle>
+                  <CardTitle className="text-pl-white font-bold">Quick Links</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
@@ -200,7 +179,7 @@ const Dashboard: React.FC = () => {
                       >
                         <div className="flex items-center space-x-3">
                           <link.icon className="size-5 text-pl-cyan" />
-                          <span className="text-body text-pl-white">{link.name}</span>
+                          <span className="text-body font-semibold text-pl-white">{link.name}</span>
                         </div>
                         <ChevronRight className="size-4 text-pl-white/60 group-hover:translate-x-1 transition-transform" />
                       </motion.button>
@@ -213,7 +192,7 @@ const Dashboard: React.FC = () => {
             <motion.div variants={itemVariants}>
               <Card variant="glass" className="h-full">
                 <CardHeader>
-                  <CardTitle className="text-pl-white">Global League</CardTitle>
+                  <CardTitle className="text-pl-white font-bold">Global League</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
@@ -224,17 +203,17 @@ const Dashboard: React.FC = () => {
                         className="flex items-center justify-between p-2 rounded-lg glass text-caption"
                       >
                         <div className="flex items-center space-x-3">
-                          <span className="size-6 bg-pl-green/20 text-pl-green rounded-full flex items-center justify-center text-mini font-bold">
+                          <span className="size-6 bg-pl-green/20 text-pl-green rounded-full flex items-center justify-center text-mini font-extrabold">
                             {entry.rank}
                           </span>
                           <div>
-                            <p className="text-pl-white font-medium">{entry.team}</p>
-                            <p className="text-pl-white/60">{entry.manager}</p>
+                            <p className="text-pl-white font-bold">{entry.team}</p>
+                            <p className="text-pl-white/60 font-semibold">{entry.manager}</p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-pl-white font-semibold tabular-nums">{entry.total}</p>
-                          <p className="text-pl-green tabular-nums">+{entry.gwPoints}</p>
+                          <p className="text-pl-white font-extrabold tabular-nums">{entry.total}</p>
+                          <p className="text-pl-green font-extrabold tabular-nums">+{entry.gwPoints}</p>
                         </div>
                       </motion.div>
                     ))}
